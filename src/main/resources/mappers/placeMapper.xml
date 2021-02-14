@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ds.mappers.placeMapper">
+
+<!-- place 입력 -->
+	<insert id="create">
+		insert into place (plc_no, plc_name, plc_category, plc_addr, plc_tel, 
+							plc_info, plc_map_x,plc_map_y, plc_totalscore, plc_time, plc_hashtag,
+							loc_no, plc_img)
+		values (place_seq.nextval, #{plc_name}, #{plc_category}, #{plc_addr}, #{plc_tel},
+						#{plc_info}, #{plc_map_x},#{plc_map_y}, 0, #{plc_time}, #{plc_hashtag},
+						 #{loc_no}, #{plc_img} )
+						 
+		<selectKey keyProperty="plc_no" resultType="int" order="AFTER">
+			select place_seq.currval from dual
+		</selectKey>
+	</insert>
+	
+	<insert id="imgCreate">
+		insert into image (plc_no, img_name)
+		values (#{plc_no}, #{img_name})
+	</insert>
+
+
+<!-- place 조회 -->
+	<select id="read" resultType="PlaceVO">
+		select * from place
+		where plc_no = #{plc_no}
+	</select>
+	
+	
+<!-- 카테고리별 베스트 뽑기 -->
+	<select id="bestStay" resultType="PlaceVO">
+		select *			
+		from (select rownum rnum, a.*			
+		from (select * from place			
+		where plc_category = '숙박'		
+		and loc_no = #{loc_no}
+		order by plc_totalscore desc)			
+		a)			
+		where rnum &gt;= 1 and rnum &lt;= 12
+	</select>
+	
+	<select id="bestAttraction"  resultType="PlaceVO">
+		select *			
+		from (select rownum rnum, a.*			
+		from (select * from place			
+		where plc_category = '명소'		
+		and loc_no = #{loc_no}
+		order by plc_totalscore desc)			
+		a)			
+		where rnum &gt;= 1 and rnum &lt;= 12
+	</select>
+	
+	<select id="bestRestaurant" resultType="PlaceVO">
+		select *			
+			from (select rownum rnum, a.*			
+				from (select * from place			
+				where plc_category = '맛집'		
+				and loc_no = #{loc_no}
+				order by plc_totalscore desc)			
+				a)			
+		where rnum &gt;= 1 and rnum &lt;= 12
+	</select>
+
+
+<!-- place 수정 -->
+	<update id="update">
+		update place set
+			plc_name = #{plc_name},
+			plc_category = #{plc_category},
+			plc_addr = #{plc_addr},
+			plc_tel = #{plc_tel},
+			plc_info = #{plc_info},
+			plc_totalscore = #{plc_totalscore},
+			plc_time = #{plc_time},
+			plc_hashtag = #{plc_hashtag},
+			plc_img = #{plc_img},
+			plc_map_x = #{plc_map_x},
+			plc_map_y = #{plc_map_y}
+		where plc_no = #{plc_no}
+	</update>
+	
+<!-- place 삭제 -->
+	
+	<delete id="deleteTheme">
+		delete from plc_theme
+		where plc_no = #{plc_no}
+	</delete>
+	
+	<!-- place 삭제 -->
+	<delete id="delete6">
+		delete from place 
+		where plc_no = #{plc_no}
+	</delete>
+	
+	<delete id="delete5">
+		delete from plc_review
+		where plc_no = #{plc_no}
+	</delete>
+	
+	<delete id="delete4">
+		delete from cour_plc
+		where plc_no = #{plc_no}
+	</delete>
+	
+	<delete id="delete3">
+		delete from cart
+		where plc_no = #{plc_no}
+	</delete>
+	
+	<delete id="delete2">
+		delete from plc_theme
+		where plc_no = #{plc_no}
+	</delete>
+	
+	<delete id="delete1">
+		delete from Image
+		where plc_no = #{plc_no}
+	</delete>
+	
+	<delete id="imgDelete">
+		delete from image
+		where plc_no = #{plc_no}
+	</delete>
+	
+	
+<!-- place 리스트 가져오기 -->
+	<select id="listAll" resultType="PlaceVO">
+		select *			
+		from (select rownum rnum, a.*			
+		from (select * from place			
+		where loc_no = #{loc_no}
+		<include refid="category"></include>
+		order by plc_no desc)			
+		a)			
+		where rnum &gt;= ${cri.startRow} and rnum &lt;= ${cri.endRow}
+		
+	</select>
+	
+	<sql id="category">
+		<if test="plc_category != null">
+			<choose>
+				<when test="plc_category.equals('명소'.toString())">
+					and plc_category = '명소'
+				</when>			
+				<when test="plc_category.equals('숙박'.toString())">
+					and plc_category = '숙박'
+				</when>			
+				<when test="plc_category.equals('맛집'.toString())">
+					and plc_category = '맛집'
+				</when>	
+						
+			</choose>
+		</if>
+		<if test="plc_category == null">
+			
+		</if>
+	</sql>
+	
+<!-- 카운팅 -->
+	<select id="count" resultType="int">
+		select count(*) from place
+		where loc_no = 	#{loc_no}
+	</select>
+	
+<!-- place 카테고리별 리스트 가져오기 -->
+	<select id="listCategory" resultType="PlaceVO">
+		select *			
+		from (select rownum rnum, a.*			
+	      from (select * from place			
+		      where loc_no = #{loc_no}
+		      and plc_category = #{plc_category}
+		      order by plc_no desc)			
+			a)	
+	    where rnum &gt;= ${cri.startRow} and rnum &lt;= ${cri.endRow}
+	</select>
+
+<!-- main화면 place best -->
+	<select id="best_place" resultType="PlaceVO">
+		select *			
+		from (select rownum rnum, a.*			
+		from (select * from place			
+		where plc_category = #{plc_category}		
+		order by plc_totalscore desc)			
+		a)			
+		where rnum = 1
+	</select>
+
+<!-- min -->
+	<!-- plc_theme place조회 -->
+	<select id="readPlc_Theme" resultType="PlaceVO">
+		select * from place where plc_no in (select plc_no from plc_theme where theme_no = #{theme_no})
+	</select>
+	<!-- 테마 생성 할때 내가 담은 카드 장소 리스트 불러오기 -->
+	<select id="cartPlaceList" resultType="PlaceVO">
+		select * from place where plc_no in (select plc_no from cart where mem_id = #{mem_id})
+	</select>
+	<!-- (테마 생성 할때 내가 담은 카드 장소 리스트 불러오기)- (이미 선택된 장소들)-->
+	<select id="cartPlaceListMinusPlc_ThemeList" resultType="PlaceVO">
+		select * from place where plc_no in 
+			(select plc_no from cart where mem_id = #{mem_id})
+		and plc_no not in 
+			(select plc_no from plc_theme where theme_no = #{theme_no})
+	</select>
+	
+
+
+
+</mapper>

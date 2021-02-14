@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ds.mappers.plc_ReviewMapper">
+
+<!-- 댓글 적기 -->
+	<insert id="create">
+		insert into plc_review
+		(mem_id, plc_no, rev_content, rev_score, rev_time, rev_no)
+		values 
+		(#{mem_id}, #{plc_no}, #{rev_content}, #{rev_score}, sysdate, plc_rev_seq.nextval)
+	</insert>
+	
+<!-- 총점 구하기 -->
+	<update id="updateTotalScore">
+		update place set
+		plc_totalscore = (select round(avg(rev_score), 6) 
+							from plc_review where plc_no = #{plc_no}) 
+		where plc_no = #{plc_no}
+	</update>	
+
+ <!-- 댓글 리스트 불러오기 -->
+<!-- 	<select id="readPlc_review" resultType="Plc_ReviewVO"> -->
+<!-- 		select * from plc_review -->
+<!-- 		where plc_no = #{plc_no} -->
+<!-- 		order by rev_no desc -->
+<!-- 	</select> -->
+	
+<!-- 댓글 리스트 불러오기 -->
+	<select id="readPlc_review" resultType="Place_ReviewDTO">
+		select t.*, m.mem_img from plc_review t join member m
+		on t.mem_id = m.mem_id
+		where t.plc_no = #{plc_no}
+	</select>
+
+<!-- 댓글 -->
+	<select id="read" resultType="Plc_ReviewVO">
+		select * from plc_review
+		where rev_no = #{rev_no}
+	</select>
+
+<!-- 댓글 수정 -->
+	<update id="update">
+		update plc_review set
+			rev_content = #{rev_content},
+			rev_score = #{rev_score}
+		where rev_no = #{rev_no}
+		
+	</update>
+	
+<!-- 댓글 삭제 -->
+	<delete id="delete">
+		delete from plc_review
+	    where rev_no = #{rev_no}
+	</delete>
+	
+
+
+
+</mapper>

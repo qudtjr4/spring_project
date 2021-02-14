@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ds.mappers.locationMapper">
+
+<!-- location 입력 -->
+	<insert id="create">
+		insert into location (loc_no, loc_name, loc_info, loc_img)
+		values (loc_seq.nextval, #{loc_name}, #{loc_info}, #{loc_img})
+	</insert>
+	
+	
+	
+<!-- location 조회 -->
+	<select id="read" resultType="LocationVO">
+		select * from location
+		where loc_no = #{loc_no}
+	</select>
+		
+<!-- location 수정 -->
+	<update id="update">
+		update location set
+		loc_name = #{loc_name}, 
+		loc_info = #{loc_info}, 
+		loc_img = #{loc_img}
+		where loc_no = #{loc_no}
+		
+	</update>
+	
+<!-- location 리스트 가져오기 -->
+	<select id="listAll" resultType="LocationVO">
+		select * from location
+		order by loc_no desc
+	</select>
+	
+<!-- location 삭제 하기 -->
+	<delete id="delete5">
+		delete from location 
+		where loc_no = #{loc_no}
+	</delete>
+	<delete id="delete4">
+		delete from place
+		where plc_no in (select plc_no from place
+							where loc_no = #{loc_no})
+	</delete>
+	<delete id="delete3">
+		delete from plc_theme
+		where plc_no in (select plc_no from place
+						where loc_no = #{loc_no})
+	</delete>
+	<delete id="delete2">
+		delete from cart
+		where plc_no  in (select plc_no from place
+							where loc_no = #{loc_no}) 
+	</delete>
+	<delete id="delete1">
+		delete from cour_plc
+		where plc_no  in (select plc_no from place
+							where loc_no = #{loc_no}) 
+	</delete>
+	<delete id="delete0">
+		delete from image
+		where plc_no  in (select plc_no from place
+							where loc_no = #{loc_no}) 
+	</delete>
+	<delete id="delete0_1">
+		delete from plc_review
+		where plc_no  in (select plc_no from place
+							where loc_no = #{loc_no}) 
+	</delete>
+	
+	
+</mapper>

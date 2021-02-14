@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ds.mappers.courseMapper">
+
+	<sql id="search">
+		<if test="keyword != null">
+			<where>
+				cour_title like '%' || #{keyword} || '%'
+				or
+				cour_hashtag like '%' || #{keyword} || '%'
+			</where>
+		</if>
+	</sql>
+
+	<insert id="create">
+		insert into course(cour_no, cour_hashtag, cour_title,cour_days, mem_id)
+		values (course_seq.nextval, #{cour_hashtag}, #{cour_title}, #{cour_days} ,#{mem_id})
+	 	<selectKey keyProperty="cour_no" resultType="int" order="AFTER">
+  			 select course_seq.currval FROM DUAL
+		</selectKey>
+	</insert>
+	
+	<insert id="create_cour_plc">
+		insert into cour_plc(cour_plc_no, cour_no, plc_no)
+		values (course_plc_seq.nextval, #{cour_no},#{plc_no})
+	</insert>
+	
+	<select id="listAll" resultType="CourseVO">
+		select *			
+			from (select rownum rnum, a.*			
+				from (select *			
+					from course		
+					<include refid="search"></include>	
+					order by course.cour_no desc)			
+				a)			
+		where rnum &gt;= #{startRow} and rnum &lt;= #{endRow}
+	</select>
+	
+	<select id="courseTop" resultType="CourseVO">
+		select *			
+			from (select rownum rnum, a.*			
+				from (select * from course
+						order by cour_totalscore desc)
+				a)
+			where rnum &gt;= 1 and rnum &lt;= #{index}
+	</select>
+	
+	<select id="plcListAll" resultType="PlaceVO">
+		select p.* from cour_plc t join place p  on p.plc_no = t.plc_no 
+		where cour_no = #{cour_no} order by t.cour_plc_no
+	</select>
+	<!-- min -->
+	<select id="plcListAll2" resultType="PlaceVO">
+		select p.* from cour_plc t join place p  on p.plc_no = t.plc_no 
+		where cour_no = #{cour_no} order by t.cour_plc_no
+	</select>
+	
+	<select id="myCourse" resultType="CourseVO">
+	select * from course
+	where mem_id = #{mem_id}
+	</select>
+	
+	
+	<select id="read" resultType="CourseVO">
+		select * from course
+		where cour_no = #{cour_no}
+	</select>
+	
+	<select id="countPaging" resultType="int">
+		select count(*) from course
+		<include refid="search"/>
+	</select>
+	
+	<update id="update">
+		update course set
+			cour_title = #{cour_title},
+			cour_hashtag = #{cour_hashtag},
+			cour_days = #{cour_days}
+		where cour_no = #{cour_no}
+	</update>
+	
+	<delete id="delete">
+		delete from course
+		where cour_no = #{cour_no}
+	</delete>
+	
+	<delete id="delete_cour_plc">
+	    delete from cour_plc
+	    where cour_no = #{cour_no}
+	</delete>
+	
+	<select id="cour_Count" resultType="int">
+		select count(*) from cour_review
+		where cour_no = #{cour_no}
+	</select>
+	
+	<select id="cour_Score" resultType="int">
+		select sum(rev_score) from cour_review
+		where cour_no = #{cour_no}
+	</select>
+	
+	<update id="totalScoreUpdate">
+		update course set
+ 		cour_totalscore = #{total}
+		where cour_no = #{cour_no}
+	</update>
+	
+	
+
+	
+</mapper>

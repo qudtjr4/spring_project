@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ds.mappers.cartMapper">
+
+	<select id="listAll" resultType="Integer">
+		select plc_no from cart
+		where mem_id = #{mem_id}
+	</select>
+	
+	<select id="listAll2" resultType="PlaceVO">
+		select p.* from cart t join place p  on p.plc_no = t.plc_no where t.mem_id = #{mem_id}
+	</select>
+	
+	<select id="checkAdd" resultType="CartVO">
+		select * from cart 
+		where mem_id = #{mem_id} and plc_no = #{plc_no}
+	</select>
+	
+	<insert id="addCart">
+		insert into cart (mem_id, plc_no)
+		values (#{mem_id}, #{plc_no})
+	</insert>
+	
+	<delete id="deleteCart">
+		delete from cart
+		where mem_id = #{mem_id}
+		and plc_no = #{plc_no}
+	</delete>
+	
+</mapper>

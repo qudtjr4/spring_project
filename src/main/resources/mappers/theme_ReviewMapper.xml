@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ds.mappers.theme_ReviewMapper">
+	<insert id="addTheme_Review">
+		insert into theme_review (mem_id , theme_no , rev_content , rev_score, rev_no)
+		values (#{mem_id},#{theme_no},#{rev_content},#{rev_score},theme_rev_seq.nextval)
+	</insert>
+	
+	<select id="read" resultType="Theme_ReviewVO">
+		select * from theme_review where rev_no = #{rev_no}
+	</select>
+	
+	
+	<update id="updateTotalScore">
+		update theme set 
+		theme_totalscore = (select round(avg(rev_score),6) from theme_review where theme_no = #{theme_no}) 
+		where theme_no = #{theme_no}
+	</update>
+	
+	<select id="theme_ReviewListAll" resultType="Theme_ReviewDTO">
+		select t.*,m.mem_img
+		from theme_review t join member m
+		on t.mem_id = m.mem_id
+		where theme_no = #{theme_no}
+	</select>
+	
+	<update id="theme_ReviewModify">
+		update theme_review set
+		rev_content = #{rev_content},
+		rev_score = #{rev_score},
+		rev_time = sysdate
+		where rev_no = #{rev_no}
+	</update>
+	<delete id="theme_ReviewDelete">
+		delete from theme_review
+		where rev_no = #{rev_no}
+	</delete>
+	
+</mapper>

@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ds.mappers.themeMapper">
+
+	<insert id="insert">
+		
+		insert into theme(theme_no,theme_title,theme_img,theme_content,theme_hashtag,mem_id,theme_totalscore)
+		values (theme_seq.nextval, #{theme_title}, #{theme_img}, #{theme_content}, #{theme_hashtag}, #{mem_id}, #{theme_totalscore})
+		 <selectKey keyProperty="theme_no" resultType="int" order="AFTER">
+   			 select theme_seq.currval FROM DUAL
+ 		</selectKey>
+	</insert>
+	
+	<insert id="insertPlcTheme">
+		insert into plc_theme (theme_no, plc_no)
+		values (#{theme_no}, #{plc_no})
+	</insert>
+	<select id="read" resultType="ThemeVO">
+		select * from theme
+		where theme_no = #{theme_no}
+	</select>
+	
+	<update id="increaseViewCount">
+		update theme set
+		viewcount = viewcount + 1
+		where theme_no = #{theme_no}
+	
+	</update>
+	
+	<select id="themeCount" resultType="int">
+		select count(*) from plc_theme where theme_no = #{theme_no}
+	</select>
+	
+	<update id="update">
+		update theme set
+			theme_title = #{theme_title},
+			theme_img = #{theme_img},
+			theme_content = #{theme_content},
+			theme_hashtag = #{theme_hashtag},
+			mem_id = #{mem_id},
+			theme_totalscore = #{theme_totalscore}
+		where theme_no = #{theme_no}
+	</update>
+	
+	
+	
+	
+	
+	<delete id="delete">
+		delete from theme
+		where theme_no = #{theme_no}
+	</delete>
+	<delete id="deleteTheme_Review">
+		delete from theme_review
+		where theme_no = #{theme_no}
+	</delete>
+	<delete id="deletePlc_Theme">
+		delete from plc_theme
+		where theme_no = #{theme_no}
+	</delete>
+	<delete id="deleteMem_Theme">
+		delete from mem_theme
+		where theme_no = #{theme_no}
+	</delete>
+	
+	
+	
+	<select id="listAll" resultType="ThemeVO">
+		select * from theme
+		order by theme_no desc
+	</select>
+	
+	<select id="listTop" resultType="ThemeVO">
+		select *			
+		from (select rownum rnum, a.*			
+				from (select *			
+						from theme			
+						order by viewcount desc)			
+				a)			
+		where rnum &gt;= 1 and rnum &lt;= #{num}
+	</select>
+	
+	<select id="listPage" resultType="ThemeVO">
+	select *			
+			from (select rownum rnum, a.*			
+			      from (select *			
+			            from theme	
+						<include refid="search"></include>			            
+			            <include refid="searchLineUp"></include>)
+			      a)			
+			where rnum &gt;= #{startRow} and rnum &lt;= #{endRow}
+			
+	</select>
+	<select id="totalCount" resultType="int">
+		select count(*) from theme
+	</select>
+	
+	<sql id="search">
+		<if test="keyword != null">
+			<where>
+				theme_title like '%' || #{keyword} || '%'
+				or 
+				theme_hashtag like '%' || #{keyword} || '%'
+				or 
+				theme_content like '%' || #{keyword} || '%'
+			</where>
+		</if>
+	</sql>
+	
+	<sql id="searchLineUp">
+		<if test="lineUp != null">
+				<choose>
+					<when test="lineUp.equals('star'.toString())">
+						order by theme_totalscore desc
+					</when>
+					<when test="lineUp.equals('view'.toString())">
+						order by viewcount desc
+					</when>
+					<when test="lineUp.equals('char'.toString())">
+						order by theme_title asc
+					</when>
+				</choose>
+		</if>
+		<if test="lineUp == null">
+			order by theme_no
+		</if>
+	</sql>
+	
+	
+	<select id="myTheme" resultType="ThemeVO">
+	 select * from theme
+	 where mem_id = #{mem_id}
+	</select>
+	
+	<select id="plcListAll" resultType="PlaceVO">
+		select p.* from plc_theme t join place p on p.plc_no = t.plc_no 
+		where theme_no = #{theme_no} 
+		
+	</select>
+	
+	<!-- main에 추가 랜덤 정보 가져오기 -->
+	<select id="random" resultType="ThemeVO">
+		select * from 
+		 (select * 
+		 from theme 
+		 order by dbms_random.value)
+		where rownum &lt;= 5
+	</select>
+	
+</mapper>
